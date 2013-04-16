@@ -1,0 +1,47 @@
+Version 0.7.0 -
+  * Add support for pyscopg
+  * Fix EWKB parser for 3d geometries
+  
+Version 0.6.0 -
+  * stable release.
+
+Version 0.5.0 -
+  * Point and Box constructor now accept several argument types
+  * SRID optional in WKTParser.parseGeometry
+  * minor typo corrections
+  * added joinBoxes()
+
+Version 0.4.0 -
+  * support for Postgres-8.X and Postgis-1.X 
+  * parsers for EWKB and HEXEWKB formats
+  
+Version 0.2.0 -
+  * removed alpha status.
+
+Version 0.2.0a5 -
+  * Some small changes to unittest to complete code coverage.
+
+Version 0.2.0a4 -
+  * Small tweek to unittest to enable tests to be run with out 
+    PYTHONPATH settings.
+  
+Version 0.2.0a3 -
+  * Improvements to unitest coverage.
+  * Corrections to a number of factory methods.
+
+Version 0.2.0a2 -
+  * All instatiatable OpenGIS types can now be read from the database in
+    either WKT or WKB format.
+  * All instatiatable OpenGIS types can be written to the database in WKT
+    format.
+  * All the 'Collection' classes behave like python collection classes 
+    i.e. they support append, del, etc and __iter__.
+  * The only testing to date is the unit test in the test/ directory.
+  * There will be lots of bugs.
+
+Version 0.2.0a1 -
+  * Start of an implementation of the OpenGIS types. 
+
+Version 0.1.0 - 
+  * First release
+

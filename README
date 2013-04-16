@@ -1,0 +1,180 @@
+
+GeoTypes 
+
+A package of classes for working with geomtric types in postgres.
+
+The package contains two collections of classes:
+
+  *  The first were designed for use with the geometric functions
+     supported by Postgresql (http://www.postgresql.com) although 
+     they do not need Postgresql to be present for them to be used.
+
+     The types implemented are those listed in the Postgresql 
+     documentation at http://www.postgresql.org/docs/7.3/static/datatype-geometric.html 
+     with the exception of 'line' which, as the documentation is says, 
+     is 'not fully implemented yet'.
+
+  *  The second were designed for use with the PostGIS/OpenGIS 
+     extensions to postgres. All these classes begin with "OG" so
+     as to avoid name clashed with the standard postgres types.
+
+The package exports the following classes:
+
+   Standard Postgres classes:
+
+    (class Point)
+    (class LineSeg)
+    (class Path)
+    (class Polygon)
+    (class Circle)
+    (class box)
+
+    In addition the following factory methods are provided to make construction
+    of these classes easier:
+
+    (func pointFromValues)
+    (func pointFromSequence)
+    (func lineSegFromPoints)
+    (func lineSegFromSequence)
+    (func pathFromPoints)
+    (func pathFromSequence)
+    (func boxFromPoints)
+    (func boxFromSequence)
+    (func circleFromCentreAndRadius)
+    (func circelFromSequence)
+    (func polygonFromPoints)
+    (func polygonFromSequence)
+
+   OpenGIS classes:
+
+    (class OGMultiPolygon)
+    (class OGPoint)
+    (class OGLineString)
+    (class OGLinearRing)
+    (class OGPolygon)
+    (class OGMultiPoint)
+    (class OGMultiLineString)
+    (class OGGeometryCollection)
+
+    In addition the following factory methods are provided to make construction
+    of these classes easier:
+
+    (func OGpointFromValues)
+    (func OGpointFromSequence)
+    (func OGlineStringFromOGPoints)
+    (func OGlineStringFromSequence)
+    (func OGlinearRingFromOGPoints)
+    (func OGlinearRingFromSequence)
+    (func OGpolygonFromOGLines)
+    (func OGpolygonFromSequence)
+    (func OGmultiPointFromOGPoints)
+    (func OGmultiPointFromSequence)
+    (func OGmultiLineStringFromOGLineStrings)
+    (func OGmultiLineStringFromSequence)
+    (func OGmultiPolygonFromOGPolygons)
+    (func OGmultiPolygonFromSequence)
+    (func OGgeometryCollectionFromOGGeometries)
+
+
+One final method is provided to help with linking these classes into the 
+psycopg (http://initd.org/software/initd/psycopg) database wrapper:
+
+    (func initialisePsycopgTypes)
+
+
+Example usage (Standard Postgres Types):
+
+
+    import psycopg
+    import GeoTypes
+
+    GeoTypes.initialisePsycopgTypes(psycopg_module=psycopg)
+
+    conn = psycopg.connect('dbname=schema_test user=postgres')
+    curs = conn.cursor()
+
+    curs.execute("CREATE TABLE table_name (p1 point, b box)")
+
+    p = GeoTypes.pointFromValues(5.0,7.0)
+    b = GeoTypes.boxFromPoints(p,GeoTypes.pointFromValues(1.0,1.0))
+
+    curs.execute("INSERT INTO table_name VALUES (%(p)s,%(b)s)", {'p':p, 'b':b})
+
+
+    curs.execute("SELECT p1, b FROM table_name WHERE (p1 ~= %(p)s)", {'p':p})
+
+    ret = curs.fetchall()[0]
+
+    new_point = ret[0]
+    new_box   = ret[1]
+
+    if new_box == b:
+        print "We have the same box!"
+
+
+Example usage (Psycopg2):
+
+    import psycopg2
+    import psycopg2.extensions
+    import GeoTypes
+
+    GeoTypes.initialisePsycopgTypes(psycopg_module=psycopg, psycopg_extensions_module=psycopg2.extensions)
+
+Example usage (OpenGIS Types):
+
+ * Note * before you can use any of the OpenGIS types with a database you
+          must first prepare the database. Follow the instructions at:
+          http://postgis.refractions.net/docs/x83.html. The simplified
+          operations are:
+              createlang plpgsql [yourdatabase]
+              psql -d [yourdatabase] -f postgis.sql
+              psql -d [yourdatabase] -f spatial_ref_sys.sql
+
+
+    import psycopg
+    import GeoTypes
+
+    GeoTypes.initialisePsycopgTypes(psycopg_module=psycopg, connect_string='dbname=schema_test user=postgres',
+                                    register_opengis_types=1)
+
+    conn = psycopg.connect('dbname=schema_test user=postgres')
+    curs = conn.cursor()
+
+
+    curs.execute("CREATE TABLE table_name (dumy int)")
+    curs.execute("SELECT AddGeometryColumn('schema_test', 'table_name', 'p1', 128, 'POINT', 2 )")
+    curs.execute("SELECT AddGeometryColumn('schema_test', 'table_name', 'p2', 128, 'POLYGON', 2 )")
+
+
+    point   = GeoTypes.OGpointFromValues(5.0,7.0)
+    polygon = GeoTypes.OGpolygonFromOGLines(
+                GeoTypes.OGlinearRingFromOGPoints(
+                    GeoTypes.OGpointFromValues(3,4),
+                    GeoTypes.OGpointFromValues(4,4),
+                    GeoTypes.OGpointFromValues(4,3),
+                    GeoTypes.OGpointFromValues(3,4),
+                    ),
+                GeoTypes.OGlinearRingFromOGPoints(
+                    GeoTypes.OGpointFromValues(3,4),
+                    GeoTypes.OGpointFromValues(4,4),
+                    GeoTypes.OGpointFromValues(4,3),
+                    GeoTypes.OGpointFromValues(3,4),
+                    )
+                )
+
+    curs.execute("INSERT INTO table_name VALUES (1,%(point)s,%(polygon)s)", {'point':point, 'polygon':polygon})
+
+
+    curs.execute("SELECT p1, p2 FROM table_name WHERE (p1 ~= %(point)s)", {'point':point})
+
+    ret = curs.fetchall()[0]
+
+    new_point   = ret[0]
+    new_polygon = ret[1]
+
+    if new_polygon == polygon:
+        print "We have the same polygon!"
+    else:
+        print "Something bad has happend."
+        print "new_polygon = ", new_polygon
+        print "old_polygon = ", polygon

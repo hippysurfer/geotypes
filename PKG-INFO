@@ -1,0 +1,18 @@
+Metadata-Version: 1.0
+Name: GeoTypes
+Version: 0.7.0
+Summary: Classes for working with basic 2d geometric types
+Home-page: http://
+Author: Richard Taylor, QinetiQ Plc.
+Author-email: r.taylor@eris.qinetiq.com
+License: LGPL
+Description: 
+        GeoTypes
+        
+        A package of classes for working with basic 2d geometric types.
+        
+        These classes were designed for use with the geometric functions
+        supported by Postgresql (http://www.postgresql.com) although they
+        do not need Postgresql to be present for them to be used.
+        
+Platform: UNKNOWN
